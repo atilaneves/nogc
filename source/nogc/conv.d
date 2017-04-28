@@ -34,6 +34,14 @@ string text(size_t bufferSize = BUFFER_SIZE, A...)(auto ref A args) {
     actual.shouldEqual("1 2.000000 true");
 }
 
+@("text with void[]")
+@system unittest {
+    void[] arg;
+    const actual = () @nogc nothrow { return text(arg); }();
+    actual.shouldEqual("[void]");
+}
+
+
 private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
     return &"%s"[0];
 }
@@ -76,6 +84,9 @@ private const(char)* format(T)(ref const(T) arg) if(isPointer!T) {
 }
 
 
+private const(char)* format(T)(ref const(T) arg) if(is(T == void[])) {
+    return &"%s"[0];
+}
 
 private auto value(T)(ref const(T) arg) if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool)) {
     return arg;
@@ -186,6 +197,10 @@ private auto value(T)(ref const(T) arg) @nogc if(isAggregateType!T) {
 
         return &buffer[0];
     }
+}
+
+private auto value(T)(ref const(T) arg) if(is(T == void[])) {
+    return &"[void]"[0];
 }
 
 // helper function to avoid a closure

@@ -168,7 +168,10 @@ class NoGcException: Exception {
 
         auto exception = new NoGcException();
         const ptr = new int(42);
-        const expected = "0x" ~ ptr.to!string.toLower;
+        version(Windows)
+            const expected = "0" ~ ptr.to!string.toLower;
+        else
+            const expected = "0x" ~ ptr.to!string.toLower;
 
         () @nogc nothrow { exception.adjust(ptr); }();
 
