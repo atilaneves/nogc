@@ -13,7 +13,6 @@
         {
             "name": "unittest",
             "targetType": "executable",
-            "sourcePaths": ["tests"],
             "mainSourceFile": "bin/ut.d",
             "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f bin/ut.d"],
             "dependencies": {
@@ -23,8 +22,6 @@
         {
             "name": "ut",
             "targetType": "executable",
-            "dflags": ["-unittest"],
-            "sourcePaths": ["tests"],
             "mainSourceFile": "bin/ut.d",
             "dependencies": {
                 "unit-threaded": "~>0.7.0",

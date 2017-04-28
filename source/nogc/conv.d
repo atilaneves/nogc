@@ -5,7 +5,7 @@
 module nogc.conv;
 
 version(unittest) import unit_threaded;
-import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType;
+import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType, isSomeString;
 import std.range: isInputRange;
 
 enum BUFFER_SIZE = 1024;
@@ -25,6 +25,13 @@ string text(size_t bufferSize = BUFFER_SIZE, A...)(auto ref A args) {
     }
 
     return cast(string)buffer[0 .. index];
+}
+
+///
+@("text with multiple arguments")
+@system unittest {
+    const actual = () @nogc nothrow { return text(1, " ", 2.0, " ", true); }();
+    actual.shouldEqual("1 2.000000 true");
 }
 
 private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
@@ -187,7 +194,7 @@ private string callToString(T)(ref const(T) arg) @nogc {
 }
 
 
-const(wchar)* toWStringz(size_t bufferSize = BUFFER_SIZE)(in string str) {
+const(wchar)* toWStringz(size_t bufferSize = BUFFER_SIZE, T)(in T str) if(isSomeString!T) {
     import std.utf: byUTF;
     static wchar[BUFFER_SIZE] buffer;
     int i;
