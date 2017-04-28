@@ -5,17 +5,24 @@ public import nogc.exception;
 
 version(unitThreadedLight):
 
-@nogc unittest {
+// text is @system because it returns a slice to a static array
+// if you need to store the string you'll need to make a copy
+// since consecutive calls will return the same slice and it will
+// be mutated
+@nogc @system unittest {
     import nogc.conv: text;
     // works with basic types and user defined structs/classes
     assert(text(1, " ", "foo", " ", 2.0) == "1 foo 2.000000");
 }
 
 
-@nogc unittest {
+// enforce is @safe, since it internally makes a call to `text` but
+// immediately throws an exception, and casting it to `string` makes
+// it immutable. Ugly but it works.
+@nogc @safe unittest {
     import nogc.exception: enforce;
     import nogc.conv: text;
     const expected = 1;
     const actual = 1;
-    enforce(actual == expected, text("Expected: ", expected, " but got: ", actual));
+    enforce(actual == expected, "Expected: ", expected, " but got: ", actual);
 }
