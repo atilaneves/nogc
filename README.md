@@ -1,6 +1,6 @@
 # nogc
 
-[![Build Status](https://travis-ci.org/atilaneves/nogc.png?branch=master)](https://travis-ci.org/atilaneves/nogc
+[![Build Status](https://travis-ci.org/atilaneves/nogc.png?branch=master)](https://travis-ci.org/atilaneves/nogc)
 
 Utilities to write `@nogc` code, including converting values to strings (`text`)
 and a variant of `std.exception.enforce` that is `@nogc` but limits the type
