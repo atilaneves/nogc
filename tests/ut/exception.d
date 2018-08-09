@@ -144,14 +144,18 @@ import nogc.exception;
 
     @("adjust with int[string]")
     @system unittest {
+        import std.conv: text;
+
         auto exception = new NoGcException();
         const aa = ["foo": 1, "bar": 2];
 
         () @nogc nothrow { exception.adjust(aa); }();
 
-        // I hope the hash function doesn't change...
-        exception.msg.shouldEqual(`[bar: 2, foo: 1]`);
-        exception.line.shouldEqual(__LINE__ - 4);
+        try {
+            exception.msg.shouldEqual(`[bar: 2, foo: 1]`);
+        } catch(UnitTestException _)
+            exception.msg.shouldEqual(`[foo: 1, bar: 2]`);
+
         exception.file.shouldEqual(__FILE__);
     }
 
