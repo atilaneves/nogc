@@ -16,6 +16,7 @@ configuration "unittest" {
     sourcePaths "source" "tests"
     mainSourceFile "tests/test_main.d"
     dependency "unit-threaded" version="*"
+    dflags "-dip25" "-dip1000" "-dip1008"
 }
 
 configuration "utl" {
@@ -25,4 +26,5 @@ configuration "utl" {
     sourcePaths "source" "tests"
     mainSourceFile "tests/test_main.d"
     dependency "unit-threaded" version="*"
+    dflags "-dip25" "-dip1000" "-dip1008"
 }
