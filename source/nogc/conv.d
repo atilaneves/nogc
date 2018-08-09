@@ -26,7 +26,7 @@ string text(size_t bufferSize = BUFFER_SIZE, A...)(auto ref A args) {
         }
     }
 
-    return cast(string)buffer[0 .. index];
+    return cast(string) buffer[0 .. index];
 }
 
 
