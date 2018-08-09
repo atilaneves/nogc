@@ -1,0 +1,28 @@
+name "nogc"
+description "Utilities to write @nogc code"
+authors "Atila Neves"
+copyright "Copyright © 2017-2018 Atila Neves"
+license "BSD 3-clause"
+targetType "library"
+targetPath "bin"
+
+configuration "library" {
+}
+
+configuration "unittest" {
+    targetType "executable"
+    targetName "ut"
+    importPaths "source" "tests"
+    sourcePaths "source" "tests"
+    mainSourceFile "tests/test_main.d"
+    dependency "unit-threaded" version="~>0.7.0"
+}
+
+configuration "utl" {
+    targetType "executable"
+    targetName "utl"
+    importPaths "source" "tests"
+    sourcePaths "source" "tests"
+    mainSourceFile "tests/test_main.d"
+    dependency "unit-threaded" version="~>0.7.0"
+}
