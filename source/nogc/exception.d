@@ -49,7 +49,7 @@ class NoGcException: Exception {
     ///
     @("adjust with only strings")
     @system unittest {
-        import unit_threaded;
+        import unit_threaded.should;
         auto exception = new NoGcException();
         () @nogc nothrow { exception.adjust("foo", "bar"); }();
         exception.msg.shouldEqual("foobar");
