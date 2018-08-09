@@ -15,7 +15,7 @@ configuration "unittest" {
     importPaths "source" "tests"
     sourcePaths "source" "tests"
     mainSourceFile "tests/test_main.d"
-    dependency "unit-threaded" version="~>0.7.0"
+    dependency "unit-threaded" version="*"
 }
 
 configuration "utl" {
@@ -24,5 +24,5 @@ configuration "utl" {
     importPaths "source" "tests"
     sourcePaths "source" "tests"
     mainSourceFile "tests/test_main.d"
-    dependency "unit-threaded" version="~>0.7.0"
+    dependency "unit-threaded" version="*"
 }
