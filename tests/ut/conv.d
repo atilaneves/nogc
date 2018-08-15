@@ -27,3 +27,15 @@ import nogc.conv;
     const act = () @nogc nothrow { return str.toWStringz(); }();
     act[0 .. 7].shouldEqual("pokémon".to!wstring);
 }
+
+@("text with at limit characters")
+@system unittest {
+    const actual = () @nogc nothrow { return text!4("foo"); }();
+    actual.shouldEqual("foo");
+}
+
+@("text with 1 fewer char than needed")
+@system unittest {
+    const actual = () @nogc nothrow { return text!3("foo"); }();
+    actual.shouldEqual("fo");
+}

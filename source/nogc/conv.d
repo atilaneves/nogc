@@ -19,10 +19,12 @@ string text(size_t bufferSize = BUFFER_SIZE, A...)(auto ref A args) {
 
     int index;
     foreach(ref const arg; args) {
-        index += snprintf(&buffer[index], buffer.length - index, format(arg), value(arg));
+        index += () @trusted {
+            return snprintf(&buffer[index], buffer.length - index, format(arg), value(arg));
+        }();
 
         if(index >= buffer.length - 1) {
-            return cast(string)buffer[];
+            return cast(string) buffer[0 .. $ - 1];
         }
     }
 
