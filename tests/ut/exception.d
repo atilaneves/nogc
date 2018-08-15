@@ -6,7 +6,7 @@ import nogc.exception;
 ///
 @("enforce")
 @safe unittest {
-    string msg, file;
+    const(char)[] msg, file;
     size_t line, expectedLine;
     () @nogc {
         try {
@@ -209,4 +209,25 @@ import nogc.exception;
     exception.msg.shouldEqual(`always the same`);
     exception.line.shouldEqual(__LINE__ - 3);
     exception.file.shouldEqual(__FILE__);
+}
+
+
+@HiddenTest("Crashes flakily")
+@("TestAllocator")
+@safe @nogc unittest {
+
+    import test_allocator;
+    static TestAllocator allocator;
+
+    alias MyException = NoGcExceptionImpl!(TestAllocator*);
+
+    {
+        try
+            throw new MyException(&allocator, 42, " foobar ", 33.3);
+        catch(MyException e) {
+            assert(e.msg == "42 foobar 33.300000", e.msg);
+            assert(e.file == __FILE__);
+            assert(e.line == __LINE__ - 4);
+        }
+    }
 }

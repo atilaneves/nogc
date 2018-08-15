@@ -3,10 +3,14 @@
  */
 module nogc.exception;
 
+
+import std.experimental.allocator.mallocator: Mallocator;
+
+
 enum BUFFER_SIZE = 1024;
 
 
-T enforce(size_t bufferSize = BUFFER_SIZE, string file = __FILE__, size_t line = __LINE__, T, Args...)
+T enforce(E = NoGcException, size_t bufferSize = BUFFER_SIZE, string file = __FILE__, size_t line = __LINE__, T, Args...)
          (T value, auto ref Args args)
     @trusted
     if (is(typeof({ if (!value) {} })))
@@ -14,21 +18,41 @@ T enforce(size_t bufferSize = BUFFER_SIZE, string file = __FILE__, size_t line =
 
     import std.conv: emplace;
 
-    static void[__traits(classInstanceSize, NoGcException)] buffer = void;
+    static void[__traits(classInstanceSize, E)] buffer = void;
 
     if (!value) {
-        auto exception = emplace!NoGcException(buffer);
-        () @trusted { exception.adjust!(bufferSize, file, line)(args); }();
+        auto exception = emplace!E(buffer);
+        exception.adjust!(bufferSize, file, line)(args);
         throw cast(const)exception;
     }
     return value;
 }
 
+alias NoGcException = NoGcExceptionImpl!Mallocator;
 
-class NoGcException: Exception {
+class NoGcExceptionImpl(A): Exception {
+
+    import automem.unique_array: UniqueString;
+
+    alias Allocator = A;
+
+    private UniqueString!A _msg;
 
     this() @safe @nogc nothrow pure {
-        super("");
+        super(null);
+    }
+
+    this(string file = __FILE__, size_t line = __LINE__, Args...)
+        (auto ref Allocator allocator, auto ref Args args)
+    {
+        import nogc.conv: text;
+
+        super(null);
+
+        this.file = file;
+        this.line = line;
+
+        _msg = UniqueString!A(allocator, () @trusted { return text(args); }());
     }
 
     ///
@@ -37,13 +61,19 @@ class NoGcException: Exception {
         static const exception = new NoGcException();
     }
 
-    void adjust(size_t bufferSize = BUFFER_SIZE, string file = __FILE__, size_t line = __LINE__, A...)(auto ref A args) {
+    void adjust(size_t bufferSize = BUFFER_SIZE, string file = __FILE__, size_t line = __LINE__, A...)
+               (auto ref A args)
+    {
         import nogc.conv: text;
 
         this.file = file;
         this.line = line;
 
-        this.msg = text!bufferSize(args);
+        super.msg = text!bufferSize(args);
+    }
+
+    const(char)[] msg() @safe @nogc pure nothrow const scope {
+        return (cast(bool) _msg) ? _msg : super.msg;
     }
 
     ///
