@@ -6,7 +6,7 @@ license "BSD 3-clause"
 targetType "library"
 targetPath "bin"
 
-dependency "automem" version="*"
+dependency "automem" version="~>0.4.0"
 
 configuration "library" {
 }

@@ -32,27 +32,29 @@ alias NoGcException = NoGcExceptionImpl!Mallocator;
 
 class NoGcExceptionImpl(A): Exception {
 
-    import automem.unique_array: UniqueString;
+    import automem.vector: Vector;
 
     alias Allocator = A;
 
-    private UniqueString!A _msg;
+    version(none) private Vector!(immutable char, A) _msg;
 
     this() @safe @nogc nothrow pure {
         super(null);
     }
 
-    this(string file = __FILE__, size_t line = __LINE__, Args...)
-        (auto ref Allocator allocator, auto ref Args args)
-    {
-        import nogc.conv: text;
+    version(none) {
+        this(string file = __FILE__, size_t line = __LINE__, Args...)
+            (auto ref Allocator allocator, auto ref Args args)
+            {
+                import nogc.conv: text;
 
-        super(null);
+                super(null);
 
-        this.file = file;
-        this.line = line;
+                this.file = file;
+                this.line = line;
 
-        _msg = UniqueString!A(allocator, () @trusted { return text(args); }());
+                _msg = Vector!(immutable char, A)(allocator, () @trusted { return text(args); }());
+            }
     }
 
     ///
@@ -73,7 +75,8 @@ class NoGcExceptionImpl(A): Exception {
     }
 
     const(char)[] msg() @safe @nogc pure nothrow const scope {
-        return (cast(bool) _msg) ? _msg : super.msg;
+        version(none) return _msg.length ? _msg[] : super.msg;
+        else return super.msg;
     }
 
     ///
