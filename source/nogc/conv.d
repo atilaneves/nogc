@@ -14,9 +14,7 @@ enum BUFFER_SIZE = 1024;
 
 auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
          (auto ref Args args)
-    @safe
 {
-
     import automem.vector: StringA;
     import core.stdc.stdio: snprintf;
 
