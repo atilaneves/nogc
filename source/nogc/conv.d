@@ -163,7 +163,7 @@ private auto value(T)(ref const(T) arg) if(isAssociativeArray!T) {
     return &buffer[0];
 }
 
-private auto value(T)(ref const(T) arg) @nogc if(isAggregateType!T) {
+private auto value(T)(ref const(T) arg) if(isAggregateType!T) {
     import core.stdc.string: strlen;
     import core.stdc.stdio: snprintf;
     import std.traits: hasMember;

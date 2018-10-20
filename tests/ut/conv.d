@@ -40,8 +40,20 @@ import nogc.conv;
     actual[].shouldEqual("fo");
 }
 
-@("text enum")
-@safe unittest {
+@("text.enum")
+@safe @nogc unittest {
     enum Enum { foo, bar, baz }
-    Enum.bar.text[].shouldEqual("bar");
+    const actual = Enum.bar.text;
+    assert(actual[] == "bar", actual[]);
+}
+
+@("text.struct")
+@safe @nogc unittest {
+    static struct Struct {
+        int i;
+        double d;
+    }
+
+    const actual = Struct(2, 33.3).text;
+    assert(actual[] == "Struct(2, 33.300000)", actual[]);
 }
