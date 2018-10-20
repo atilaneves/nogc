@@ -7,30 +7,34 @@ module nogc.conv;
 
 import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType, isSomeString;
 import std.range: isInputRange;
-
+import stdx.allocator.mallocator: Mallocator;
 
 enum BUFFER_SIZE = 1024;
 
 
-string text(size_t bufferSize = BUFFER_SIZE, A...)(auto ref A args) {
+auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
+         (auto ref Args args)
+    @safe
+{
+
+    import automem.vector: StringA;
     import core.stdc.stdio: snprintf;
 
-    static char[bufferSize] buffer;
+    scope char[bufferSize] buffer;
+    StringA!Allocator ret;
 
-    int index;
     foreach(ref const arg; args) {
-        index += () @trusted {
-            return snprintf(&buffer[index], buffer.length - index, format(arg), value(arg));
+        const index = () @trusted {
+            return snprintf(&buffer[0], buffer.length, format(arg), value(arg));
         }();
 
-        if(index >= buffer.length - 1) {
-            return cast(string) buffer[0 .. $ - 1];
-        }
+        ret ~= index >= buffer.length - 1
+            ? buffer[0 .. $ - 1]
+            : buffer[0 .. index];
     }
 
-    return cast(string) buffer[0 .. index];
+    return ret;
 }
-
 
 private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
     return &"%s"[0];

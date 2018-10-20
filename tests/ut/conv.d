@@ -5,16 +5,16 @@ import nogc.conv;
 
 
 @("text with multiple arguments")
-@system unittest {
+@safe unittest {
     const actual = () @nogc nothrow { return text(1, " ", 2.0, " ", true); }();
-    actual.shouldEqual("1 2.000000 true");
+    actual[].shouldEqual("1 2.000000 true");
 }
 
 @("text with void[]")
-@system unittest {
+@safe unittest {
     void[] arg;
     const actual = () @nogc nothrow { return text(arg); }();
-    actual.shouldEqual("[void]");
+    actual[].shouldEqual("[void]");
 }
 
 @("toWStringz")
@@ -29,13 +29,13 @@ import nogc.conv;
 }
 
 @("text with at limit characters")
-@system unittest {
+@safe unittest {
     const actual = () @nogc nothrow { return text!4("foo"); }();
-    actual.shouldEqual("foo");
+    actual[].shouldEqual("foo");
 }
 
 @("text with 1 fewer char than needed")
-@system unittest {
+@safe unittest {
     const actual = () @nogc nothrow { return text!3("foo"); }();
-    actual.shouldEqual("fo");
+    actual[].shouldEqual("fo");
 }

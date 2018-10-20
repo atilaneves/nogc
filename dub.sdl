@@ -5,6 +5,7 @@ copyright "Copyright © 2017-2018 Atila Neves"
 license "BSD 3-clause"
 targetType "library"
 targetPath "bin"
+dflags "-dip1008"
 
 dependency "automem" version="~>0.4.0"
 
@@ -15,28 +16,29 @@ configuration "unittest" {
     targetType "executable"
     targetName "ut"
 
-    importPaths "source" "tests"
-    sourcePaths "source" "tests"
+    importPaths "tests"
+    sourcePaths "tests"
     mainSourceFile "tests/test_main.d"
 
-    dflags "-dip25" "-dip1000" "-dip1008"
+    dflags "-dip25" "-dip1000"
 
     dependency "unit-threaded" version="*"
     dependency "test_allocator" version="*"
 }
 
-configuration "utl" {
+configuration "asan" {
     targetType "executable"
-    targetName "utl"
+    targetName "asan"
 
-    importPaths "source" "tests"
-    sourcePaths "source" "tests"
+    importPaths "tests"
+    sourcePaths "tests"
     mainSourceFile "tests/test_main.d"
 
-    dflags "-dip25" "-dip1000" "-dip1008"
+    dflags "-dip25" "-dip1000"
+    dflags "-fsanitize=address" platform="ldc"
+
+    versions "unitUnthreaded" "unitThreadedLight"
 
     dependency "unit-threaded" version="*"
     dependency "test_allocator" version="*"
-
-    versions "unitThreadedLight"
 }
