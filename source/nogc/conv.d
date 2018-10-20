@@ -95,7 +95,7 @@ private auto value(T)(ref const(T) arg) if(is(T == enum)) {
     }
 
     final switch(arg) {
-        foreach(member; EnumMembers!T) {
+        static foreach(member; EnumMembers!T) {
         case member:
             mixin(`return &"` ~ member.to!string ~ `"[0];`);
         }

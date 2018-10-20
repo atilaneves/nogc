@@ -39,3 +39,9 @@ import nogc.conv;
     const actual = () @nogc nothrow { return text!3("foo"); }();
     actual[].shouldEqual("fo");
 }
+
+@("text enum")
+@safe unittest {
+    enum Enum { foo, bar, baz }
+    Enum.bar.text[].shouldEqual("bar");
+}
