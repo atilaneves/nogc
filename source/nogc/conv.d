@@ -22,9 +22,11 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
     StringA!Allocator ret;
 
     foreach(ref const arg; args) {
-        const index = () @trusted {
-            return snprintf(&buffer[0], buffer.length, format(arg), value(arg));
-        }();
+        auto ptr = &buffer[0];
+        auto len = buffer.length;
+        auto fmt = format(arg);
+        auto val = () @trusted { return value(arg); }();
+        const index = () @trusted { return snprintf(ptr, len, fmt, val); }();
 
         ret ~= index >= buffer.length - 1
             ? buffer[0 .. $ - 1]
