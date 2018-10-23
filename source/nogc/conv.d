@@ -200,12 +200,6 @@ private auto value(T)(ref const(T) arg) if(is(T == void[])) {
     return &"[void]"[0];
 }
 
-// helper function to avoid a closure
-private string callToString(T)(ref const(T) arg) @nogc {
-    return arg.toString;
-}
-
-
 const(wchar)* toWStringz(size_t bufferSize = BUFFER_SIZE, T)(in T str) if(isSomeString!T) {
     import std.utf: byUTF;
     static wchar[BUFFER_SIZE] buffer;
