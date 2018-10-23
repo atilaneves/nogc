@@ -155,28 +155,25 @@ private auto value(Allocator = Mallocator, T)(T arg) if(isInputRange!T && !is(T 
     return ret;
 }
 
-private auto value(T)(ref const(T) arg) if(isAssociativeArray!T) {
-    import core.stdc.string: strlen;
-    import core.stdc.stdio: snprintf;
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(isAssociativeArray!T) {
 
-    static char[BUFFER_SIZE] buffer;
+    import automem.vector: StringA;
 
-    if(arg.length > buffer.length - 1) return null;
+    StringA!Allocator ret;
 
-    int index;
-    buffer[index++] = '[';
-    int i;
-    foreach(ref const elt; arg.byKeyValue) {
-        index += snprintf(&buffer[index], buffer.length - index, format(elt.key), value(elt.key));
-        index += snprintf(&buffer[index], buffer.length - index, ": ");
-        index += snprintf(&buffer[index], buffer.length - index, format(elt.value), value(elt.value));
-        if(i++ != arg.length - 1) index += snprintf(&buffer[index], buffer.length - index, ", ");
+    ret ~= "[";
+
+    size_t i;
+    foreach(key, val; arg) {
+        ret ~= text(key)[];
+        ret ~= ": ";
+        ret ~= text(val)[];
+        if(++i < arg.length) ret ~= ", ";
     }
 
-    buffer[index++] = ']';
-    buffer[index++] = 0;
+    ret ~= "]";
 
-    return &buffer[0];
+    return ret;
 }
 
 private auto value(T)(ref const(T) arg) if(isAggregateType!T && !isInputRange!T) {

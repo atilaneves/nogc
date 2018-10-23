@@ -71,3 +71,10 @@ import nogc.conv;
     const actual = only(0, 1, 2, 3).text;
     debug actual[].shouldEqual("[0, 1, 2, 3]");
 }
+
+@("text.aa")
+@safe unittest {
+    const aa = ["foo": 1, "bar": 2];
+    const actual = () @nogc { return aa.text; }();
+    debug actual[].shouldEqual(`[foo: 1, bar: 2]`);
+}
