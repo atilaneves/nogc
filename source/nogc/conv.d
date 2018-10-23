@@ -128,25 +128,31 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == strin
     return StringA!Allocator(arg);
 }
 
-private auto value(T)(ref const(T) arg) if(isInputRange!T && !is(T == string)) {
-    import core.stdc.string: strlen;
-    import core.stdc.stdio: snprintf;
+private auto value(Allocator = Mallocator, T)(T arg) if(isInputRange!T && !is(T == string)) {
 
-    static char[BUFFER_SIZE] buffer;
+    import automem.vector: StringA;
+    import std.range: hasLength, isForwardRange, walkLength;
 
-    if(arg.length > buffer.length - 1) return null;
+    StringA!Allocator ret;
 
-    int index;
-    buffer[index++] = '[';
-    foreach(i, ref const elt; arg) {
-        index += snprintf(&buffer[index], buffer.length - index, format(elt), value(elt));
-        if(i != arg.length - 1) index += snprintf(&buffer[index], buffer.length - index, ", ");
+    ret ~= "[";
+
+    static if(hasLength!T)
+        const length = arg.length;
+    else static if(isForwardRange!T)
+        const length = arg.save.walkLength;
+    else
+        const length = size_t.max;
+
+    size_t i;
+    foreach(elt; arg) {
+        ret ~= text(elt)[];
+        if(++i < length) ret ~= ", ";
     }
 
-    buffer[index++] = ']';
-    buffer[index++] = 0;
+    ret ~= "]";
 
-    return &buffer[0];
+    return ret;
 }
 
 private auto value(T)(ref const(T) arg) if(isAssociativeArray!T) {
@@ -173,7 +179,7 @@ private auto value(T)(ref const(T) arg) if(isAssociativeArray!T) {
     return &buffer[0];
 }
 
-private auto value(T)(ref const(T) arg) if(isAggregateType!T) {
+private auto value(T)(ref const(T) arg) if(isAggregateType!T && !isInputRange!T) {
     import core.stdc.string: strlen;
     import core.stdc.stdio: snprintf;
     import std.traits: hasMember;

@@ -63,3 +63,11 @@ import nogc.conv;
     const actual = "foobar".text;
     debug actual[].shouldEqual("foobar");
 }
+
+
+@("text.inputrange")
+@safe @nogc unittest {
+    import std.range: only;
+    const actual = only(0, 1, 2, 3).text;
+    debug actual[].shouldEqual("[0, 1, 2, 3]");
+}
