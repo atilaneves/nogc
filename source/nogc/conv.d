@@ -34,10 +34,6 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
     return ret;
 }
 
-private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
-    return &"%s"[0];
-}
-
 private const(char)* format(T)(ref const(T) arg) if(is(T == int) || is(T == short) || is(T == byte)) {
     return &"%d"[0];
 }
@@ -66,21 +62,27 @@ private const(char)* format(T)(ref const(T) arg) if(is(T == double)) {
     return &"%lf"[0];
 }
 
-private const(char)* format(T)(ref const(T) arg)
-    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) || isAssociativeArray!T || isAggregateType!T) {
-    return &"%s"[0];
-}
-
 private const(char)* format(T)(ref const(T) arg) if(isPointer!T) {
     return &"%p"[0];
 }
 
+private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
+    return &"%s"[0];
+}
 
 private const(char)* format(T)(ref const(T) arg) if(is(T == void[])) {
     return &"%s"[0];
 }
 
-private auto value(T)(ref const(T) arg) if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool)) {
+private const(char)* format(T)(ref const(T) arg)
+    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) || isAssociativeArray!T || isAggregateType!T) {
+    return &"%s"[0];
+}
+
+
+private auto value(T)(ref const(T) arg)
+    if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool))
+{
     return arg;
 }
 
