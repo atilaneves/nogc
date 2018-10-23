@@ -57,3 +57,9 @@ import nogc.conv;
     const actual = Struct(2, 33.3).text;
     assert(actual[] == "Struct(2, 33.300000)", actual[]);
 }
+
+@("text.string")
+@safe @nogc unittest {
+    const actual = "foobar".text;
+    debug actual[].shouldEqual("foobar");
+}

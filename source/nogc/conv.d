@@ -11,6 +11,7 @@ import stdx.allocator.mallocator: Mallocator;
 
 enum BUFFER_SIZE = 1024;
 
+@nogc:
 
 auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
          (auto ref Args args)
@@ -18,14 +19,22 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
     import automem.vector: StringA;
     import core.stdc.stdio: snprintf;
 
+    alias String = StringA!Allocator;
+
     scope char[bufferSize] buffer;
-    StringA!Allocator ret;
+    String ret;
 
     foreach(ref const arg; args) {
         auto ptr = &buffer[0];
         auto len = buffer.length;
         auto fmt = format(arg);
-        auto val = () @trusted { return value(arg); }();
+        auto rawVal = () @trusted { return value(arg); }();
+
+        static if(__traits(compiles, rawVal.stringz))
+            auto val = rawVal.stringz;
+        else
+            alias val = rawVal;
+
         const index = () @trusted { return snprintf(ptr, len, fmt, val); }();
 
         ret ~= index >= buffer.length - 1
@@ -77,7 +86,9 @@ private const(char)* format(T)(ref const(T) arg) if(is(T == void[])) {
 }
 
 private const(char)* format(T)(ref const(T) arg)
-    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) || isAssociativeArray!T || isAggregateType!T) {
+    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) ||
+       isAssociativeArray!T || isAggregateType!T)
+{
     return &"%s"[0];
 }
 
@@ -112,12 +123,9 @@ private auto value(T)(ref const(T) arg) if(is(T == bool)) {
 }
 
 
-private auto value(T)(ref const(T) arg) if(is(T == string)) {
-    static char[BUFFER_SIZE] buffer;
-    if(arg.length > buffer.length - 1) return null;
-    buffer[0 .. arg.length] = arg[];
-    buffer[arg.length] = 0;
-    return &buffer[0];
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == string)) {
+    import automem.vector: StringA;
+    return StringA!Allocator(arg);
 }
 
 private auto value(T)(ref const(T) arg) if(isInputRange!T && !is(T == string)) {
