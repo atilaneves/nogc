@@ -176,34 +176,24 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(isAssociative
     return ret;
 }
 
-private auto value(T)(ref const(T) arg) if(isAggregateType!T && !isInputRange!T) {
-    import core.stdc.string: strlen;
-    import core.stdc.stdio: snprintf;
-    import std.traits: hasMember;
+private auto value(Allocator = Mallocator, T)(ref const(T) arg)
+    if(isAggregateType!T && !isInputRange!T)
+{
+    import automem.vector: StringA;
 
-    static char[BUFFER_SIZE] buffer;
+    StringA!Allocator ret;
 
-    static if(__traits(compiles, callToString(arg))) {
-        const repr = arg.toString;
-        if(repr.length > buffer.length - 1) return null;
-        buffer[0 .. repr.length] = repr[];
-        buffer[repr.length] = 0;
-        return &buffer[0];
-    } else {
+    ret ~= T.stringof;
+    ret ~= "(";
 
-        int index;
-        index += snprintf(&buffer[index], buffer.length - index, T.stringof);
-        buffer[index++] = '(';
-        foreach(i, ref const elt; arg.tupleof) {
-            index += snprintf(&buffer[index], buffer.length - index, format(elt), value(elt));
-            if(i != arg.tupleof.length - 1) index += snprintf(&buffer[index], buffer.length - index, ", ");
-        }
-
-        buffer[index++] = ')';
-        buffer[index++] = 0;
-
-        return &buffer[0];
+    foreach(i, elt; arg.tupleof) {
+        ret ~= text(elt)[];
+        if(i != arg.tupleof.length - 1) ret ~= ", ";
     }
+
+    ret ~= ")";
+
+    return ret;
 }
 
 private auto value(T)(ref const(T) arg) if(is(T == void[])) {
