@@ -76,5 +76,8 @@ import nogc.conv;
 @safe unittest {
     const aa = ["foo": 1, "bar": 2];
     const actual = () @nogc { return aa.text; }();
-    debug actual[].shouldEqual(`[foo: 1, bar: 2]`);
+    try
+        debug actual[].shouldEqual(`[foo: 1, bar: 2]`);
+    catch(UnitTestException _)
+        debug actual[].shouldEqual(`[bar: 2, foo: 1]`);
 }
