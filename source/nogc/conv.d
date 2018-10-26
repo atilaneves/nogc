@@ -11,6 +11,7 @@ import stdx.allocator.mallocator: Mallocator;
 
 enum BUFFER_SIZE = 1024;
 
+@nogc:
 
 auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
          (auto ref Args args)
@@ -18,13 +19,23 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
     import automem.vector: StringA;
     import core.stdc.stdio: snprintf;
 
+    alias String = StringA!Allocator;
+
     scope char[bufferSize] buffer;
-    StringA!Allocator ret;
+    String ret;
 
     foreach(ref const arg; args) {
-        const index = () @trusted {
-            return snprintf(&buffer[0], buffer.length, format(arg), value(arg));
-        }();
+        auto ptr = &buffer[0];
+        auto len = buffer.length;
+        auto fmt = format(arg);
+        auto rawVal = () @trusted { return value!Allocator(arg); }();
+
+        static if(__traits(compiles, rawVal.stringz))
+            auto val = rawVal.stringz;
+        else
+            alias val = rawVal;
+
+        const index = () @trusted { return snprintf(ptr, len, fmt, val); }();
 
         ret ~= index >= buffer.length - 1
             ? buffer[0 .. $ - 1]
@@ -32,10 +43,6 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
     }
 
     return ret;
-}
-
-private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
-    return &"%s"[0];
 }
 
 private const(char)* format(T)(ref const(T) arg) if(is(T == int) || is(T == short) || is(T == byte)) {
@@ -66,25 +73,33 @@ private const(char)* format(T)(ref const(T) arg) if(is(T == double)) {
     return &"%lf"[0];
 }
 
-private const(char)* format(T)(ref const(T) arg)
-    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) || isAssociativeArray!T || isAggregateType!T) {
-    return &"%s"[0];
-}
-
 private const(char)* format(T)(ref const(T) arg) if(isPointer!T) {
     return &"%p"[0];
 }
 
+private const(char)* format(T)(ref const(T) arg) if(is(T == string)) {
+    return &"%s"[0];
+}
 
 private const(char)* format(T)(ref const(T) arg) if(is(T == void[])) {
     return &"%s"[0];
 }
 
-private auto value(T)(ref const(T) arg) if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool)) {
+private const(char)* format(T)(ref const(T) arg)
+    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) ||
+       isAssociativeArray!T || isAggregateType!T)
+{
+    return &"%s"[0];
+}
+
+
+private auto value(Allocator = Mallocator, T)(ref const(T) arg)
+    if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool))
+{
     return arg;
 }
 
-private auto value(T)(ref const(T) arg) if(is(T == enum)) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == enum)) {
     import std.traits: EnumMembers;
     import std.conv: to;
 
@@ -101,113 +116,101 @@ private auto value(T)(ref const(T) arg) if(is(T == enum)) {
 }
 
 
-private auto value(T)(ref const(T) arg) if(is(T == bool)) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == bool)) {
     return arg
         ? &"true"[0]
         : &"false"[0];
 }
 
 
-private auto value(T)(ref const(T) arg) if(is(T == string)) {
-    static char[BUFFER_SIZE] buffer;
-    if(arg.length > buffer.length - 1) return null;
-    buffer[0 .. arg.length] = arg[];
-    buffer[arg.length] = 0;
-    return &buffer[0];
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == string)) {
+    import automem.vector: StringA;
+    return StringA!Allocator(arg);
 }
 
-private auto value(T)(ref const(T) arg) if(isInputRange!T && !is(T == string)) {
-    import core.stdc.string: strlen;
-    import core.stdc.stdio: snprintf;
+private auto value(Allocator = Mallocator, T)(T arg) if(isInputRange!T && !is(T == string)) {
 
-    static char[BUFFER_SIZE] buffer;
+    import automem.vector: StringA;
+    import std.range: hasLength, isForwardRange, walkLength;
 
-    if(arg.length > buffer.length - 1) return null;
+    StringA!Allocator ret;
 
-    int index;
-    buffer[index++] = '[';
-    foreach(i, ref const elt; arg) {
-        index += snprintf(&buffer[index], buffer.length - index, format(elt), value(elt));
-        if(i != arg.length - 1) index += snprintf(&buffer[index], buffer.length - index, ", ");
+    ret ~= "[";
+
+    static if(hasLength!T)
+        const length = arg.length;
+    else static if(isForwardRange!T)
+        const length = arg.save.walkLength;
+    else
+        const length = size_t.max;
+
+    size_t i;
+    foreach(elt; arg) {
+        ret ~= text!(BUFFER_SIZE, Allocator)(elt)[];
+        if(++i < length) ret ~= ", ";
     }
 
-    buffer[index++] = ']';
-    buffer[index++] = 0;
+    ret ~= "]";
 
-    return &buffer[0];
+    return ret;
 }
 
-private auto value(T)(ref const(T) arg) if(isAssociativeArray!T) {
-    import core.stdc.string: strlen;
-    import core.stdc.stdio: snprintf;
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(isAssociativeArray!T) {
 
-    static char[BUFFER_SIZE] buffer;
+    import automem.vector: StringA;
 
-    if(arg.length > buffer.length - 1) return null;
+    StringA!Allocator ret;
 
-    int index;
-    buffer[index++] = '[';
-    int i;
-    foreach(ref const elt; arg.byKeyValue) {
-        index += snprintf(&buffer[index], buffer.length - index, format(elt.key), value(elt.key));
-        index += snprintf(&buffer[index], buffer.length - index, ": ");
-        index += snprintf(&buffer[index], buffer.length - index, format(elt.value), value(elt.value));
-        if(i++ != arg.length - 1) index += snprintf(&buffer[index], buffer.length - index, ", ");
+    ret ~= "[";
+
+    size_t i;
+    foreach(key, val; arg) {
+        ret ~= text!(BUFFER_SIZE, Allocator)(key)[];
+        ret ~= ": ";
+        ret ~= text!(BUFFER_SIZE, Allocator)(val)[];
+        if(++i < arg.length) ret ~= ", ";
     }
 
-    buffer[index++] = ']';
-    buffer[index++] = 0;
+    ret ~= "]";
 
-    return &buffer[0];
+    return ret;
 }
 
-private auto value(T)(ref const(T) arg) if(isAggregateType!T) {
-    import core.stdc.string: strlen;
-    import core.stdc.stdio: snprintf;
-    import std.traits: hasMember;
+private auto value(Allocator = Mallocator, T)(ref const(T) arg)
+    if(isAggregateType!T && !isInputRange!T)
+{
+    import automem.vector: StringA;
 
-    static char[BUFFER_SIZE] buffer;
+    StringA!Allocator ret;
 
-    static if(__traits(compiles, callToString(arg))) {
-        const repr = arg.toString;
-        if(repr.length > buffer.length - 1) return null;
-        buffer[0 .. repr.length] = repr[];
-        buffer[repr.length] = 0;
-        return &buffer[0];
-    } else {
+    ret ~= T.stringof;
+    ret ~= "(";
 
-        int index;
-        index += snprintf(&buffer[index], buffer.length - index, T.stringof);
-        buffer[index++] = '(';
-        foreach(i, ref const elt; arg.tupleof) {
-            index += snprintf(&buffer[index], buffer.length - index, format(elt), value(elt));
-            if(i != arg.tupleof.length - 1) index += snprintf(&buffer[index], buffer.length - index, ", ");
-        }
-
-        buffer[index++] = ')';
-        buffer[index++] = 0;
-
-        return &buffer[0];
+    foreach(i, elt; arg.tupleof) {
+        ret ~= text!(BUFFER_SIZE, Allocator)(elt)[];
+        if(i != arg.tupleof.length - 1) ret ~= ", ";
     }
+
+    ret ~= ")";
+
+    return ret;
 }
 
-private auto value(T)(ref const(T) arg) if(is(T == void[])) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == void[])) {
     return &"[void]"[0];
 }
 
-// helper function to avoid a closure
-private string callToString(T)(ref const(T) arg) @nogc {
-    return arg.toString;
-}
-
-
-const(wchar)* toWStringz(size_t bufferSize = BUFFER_SIZE, T)(in T str) if(isSomeString!T) {
+auto toWStringz(Allocator = Mallocator, T)(in T str) if(isSomeString!T) {
+    import automem.vector: Vector;
     import std.utf: byUTF;
-    static wchar[BUFFER_SIZE] buffer;
-    int i;
-    foreach(ch; str.byUTF!wchar) {
-        buffer[i++] = ch;
-    }
-    buffer[i] = 0;
-    return &buffer[0];
+
+    Vector!(immutable(wchar), Allocator) ret;
+    ret.reserve(str.length * str[0].sizeof + 1);
+
+    foreach(ch; str.byUTF!wchar)
+        ret ~= ch;
+
+    ret ~= 0;
+
+    return ret;
 }

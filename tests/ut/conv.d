@@ -18,7 +18,7 @@ import nogc.conv;
 }
 
 @("toWStringz")
-@system unittest {
+@safe unittest {
     import std.conv: to;
 
     const str = "pokémon";
@@ -55,5 +55,26 @@ import nogc.conv;
     }
 
     const actual = Struct(2, 33.3).text;
-    assert(actual[] == "Struct(2, 33.300000)", actual[]);
+    debug actual[].shouldEqual("Struct(2, 33.300000)");
+}
+
+@("text.string")
+@safe @nogc unittest {
+    const actual = "foobar".text;
+    debug actual[].shouldEqual("foobar");
+}
+
+
+@("text.inputrange")
+@safe @nogc unittest {
+    import std.range: only;
+    const actual = only(0, 1, 2, 3).text;
+    debug actual[].shouldEqual("[0, 1, 2, 3]");
+}
+
+@("text.aa")
+@safe unittest {
+    const aa = ["foo": 1, "bar": 2];
+    const actual = () @nogc { return aa.text; }();
+    debug actual[].shouldEqual(`[foo: 1, bar: 2]`);
 }
