@@ -28,7 +28,7 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
         auto ptr = &buffer[0];
         auto len = buffer.length;
         auto fmt = format(arg);
-        auto rawVal = () @trusted { return value(arg); }();
+        auto rawVal = () @trusted { return value!Allocator(arg); }();
 
         static if(__traits(compiles, rawVal.stringz))
             auto val = rawVal.stringz;
@@ -93,13 +93,13 @@ private const(char)* format(T)(ref const(T) arg)
 }
 
 
-private auto value(T)(ref const(T) arg)
+private auto value(Allocator = Mallocator, T)(ref const(T) arg)
     if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool))
 {
     return arg;
 }
 
-private auto value(T)(ref const(T) arg) if(is(T == enum)) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == enum)) {
     import std.traits: EnumMembers;
     import std.conv: to;
 
@@ -116,7 +116,7 @@ private auto value(T)(ref const(T) arg) if(is(T == enum)) {
 }
 
 
-private auto value(T)(ref const(T) arg) if(is(T == bool)) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == bool)) {
     return arg
         ? &"true"[0]
         : &"false"[0];
@@ -146,7 +146,7 @@ private auto value(Allocator = Mallocator, T)(T arg) if(isInputRange!T && !is(T 
 
     size_t i;
     foreach(elt; arg) {
-        ret ~= text(elt)[];
+        ret ~= text!(BUFFER_SIZE, Allocator)(elt)[];
         if(++i < length) ret ~= ", ";
     }
 
@@ -165,9 +165,9 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(isAssociative
 
     size_t i;
     foreach(key, val; arg) {
-        ret ~= text(key)[];
+        ret ~= text!(BUFFER_SIZE, Allocator)(key)[];
         ret ~= ": ";
-        ret ~= text(val)[];
+        ret ~= text!(BUFFER_SIZE, Allocator)(val)[];
         if(++i < arg.length) ret ~= ", ";
     }
 
@@ -187,7 +187,7 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg)
     ret ~= "(";
 
     foreach(i, elt; arg.tupleof) {
-        ret ~= text(elt)[];
+        ret ~= text!(BUFFER_SIZE, Allocator)(elt)[];
         if(i != arg.tupleof.length - 1) ret ~= ", ";
     }
 
@@ -196,7 +196,7 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg)
     return ret;
 }
 
-private auto value(T)(ref const(T) arg) if(is(T == void[])) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == void[])) {
     return &"[void]"[0];
 }
 
