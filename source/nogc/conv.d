@@ -200,13 +200,17 @@ private auto value(T)(ref const(T) arg) if(is(T == void[])) {
     return &"[void]"[0];
 }
 
-const(wchar)* toWStringz(size_t bufferSize = BUFFER_SIZE, T)(in T str) if(isSomeString!T) {
+auto toWStringz(Allocator = Mallocator, T)(in T str) if(isSomeString!T) {
+    import automem.vector: Vector;
     import std.utf: byUTF;
-    static wchar[BUFFER_SIZE] buffer;
-    int i;
-    foreach(ch; str.byUTF!wchar) {
-        buffer[i++] = ch;
-    }
-    buffer[i] = 0;
-    return &buffer[0];
+
+    Vector!(immutable(wchar), Allocator) ret;
+    ret.reserve(str.length * str[0].sizeof + 1);
+
+    foreach(ch; str.byUTF!wchar)
+        ret ~= ch;
+
+    ret ~= 0;
+
+    return ret;
 }

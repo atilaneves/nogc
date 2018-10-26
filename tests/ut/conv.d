@@ -18,7 +18,7 @@ import nogc.conv;
 }
 
 @("toWStringz")
-@system unittest {
+@safe unittest {
     import std.conv: to;
 
     const str = "pokémon";
