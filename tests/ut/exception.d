@@ -83,3 +83,21 @@ version(fixme) {
     version(fixme)
         assert(MyException.numInstances == 0);
 }
+
+
+@("throwNewWithFileAndLine")
+@safe @nogc unittest {
+    try
+        NoGcException.throwNewWithFileAndLine("foo.d", 42, "this is the message ", 33, " or ", 77.7, " hah");
+    catch(Exception e) {
+        assert(e.line == 42);
+        debug {
+            e.file.should == "foo.d";
+            e.line.should == 42;
+            e.msg.should == "this is the message 33 or 77.700000 hah";
+        }
+        return;
+    }
+
+    assert(false, "Didn't catch the exception");
+}

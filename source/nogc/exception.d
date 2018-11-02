@@ -41,6 +41,12 @@ class NoGcExceptionImpl(A): Exception {
         this(Dummy(), file, line, forward!args);
     }
 
+    ///
+    @("exception can be constructed in @nogc code")
+    @safe @nogc pure unittest {
+        static const exception = new NoGcException();
+    }
+
     this(Args...)
         (Allocator allocator, auto ref Args args, string file = __FILE__, size_t line = __LINE__)
     if(!anySatisfy!(isDummy, Args))
@@ -61,10 +67,12 @@ class NoGcExceptionImpl(A): Exception {
         super(_msg[], file, line);
     }
 
-    ///
-    @("exception can be constructed in @nogc code")
-    @safe @nogc pure unittest {
-        static const exception = new NoGcException();
+    /**
+       Throws a new NoGcException allowing to adjust the file name and line number
+     */
+    static void throwNewWithFileAndLine(Args...)(in string file, in size_t line, scope auto ref Args args) {
+        import std.functional: forward;
+        throw new NoGcExceptionImpl(Dummy(), file, line, forward!args);
     }
 
     /// Because DIP1008 doesn't do what it should yet
