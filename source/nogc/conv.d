@@ -21,7 +21,7 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
 
     alias String = StringA!Allocator;
 
-    scope char[bufferSize] buffer;
+    scope char[bufferSize] buffer = void;
     String ret;
 
     foreach(ref const arg; args) {
