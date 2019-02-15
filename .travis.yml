@@ -17,7 +17,7 @@ matrix:
     - d: dmd-nightly
 
 script:
-  - dub test --build=unittest-cov --compiler=${DC}
+  - dub test -c asan --build=unittest-cov --compiler=${DC}
 
 after_success:
  - bash <(curl -s https://codecov.io/bash)

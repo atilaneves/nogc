@@ -3,14 +3,18 @@ description "Utilities to write @nogc code"
 authors "Atila Neves"
 copyright "Copyright © 2017-2018 Atila Neves"
 license "BSD 3-clause"
+
 targetType "library"
 targetPath "bin"
+
 dflags "-dip1008"
 
 dependency "automem" version="~>0.4.0"
 
+
 configuration "library" {
 }
+
 
 configuration "unittest" {
     targetType "executable"
@@ -25,6 +29,7 @@ configuration "unittest" {
     dependency "unit-threaded" version="*"
     dependency "test_allocator" version="*"
 }
+
 
 configuration "asan" {
     targetType "executable"

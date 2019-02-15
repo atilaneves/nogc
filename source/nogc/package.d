@@ -1,7 +1,9 @@
 module nogc;
 
+
 public import nogc.conv;
 public import nogc.exception;
+
 
 version(unitThreadedLight):
 
@@ -12,7 +14,7 @@ version(unitThreadedLight):
 @nogc @system unittest {
     import nogc.conv: text;
     // works with basic types and user defined structs/classes
-    assert(text(1, " ", "foo", " ", 2.0) == "1 foo 2.000000");
+    assert(text(1, " ", "foo", " ", 2.0)[] == "1 foo 2.000000");
 }
 
 
