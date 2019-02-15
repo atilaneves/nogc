@@ -49,16 +49,17 @@ class NoGcExceptionImpl(A): Exception {
 
     this(Args...)
         (Allocator allocator, auto ref Args args, string file = __FILE__, size_t line = __LINE__)
-    if(!anySatisfy!(isDummy, Args))
+        if(!anySatisfy!(isDummy, Args))
     {
         import std.functional: forward;
         this(Dummy(), file, line, forward!args);
         this._allocator = allocator;
     }
 
+    // exists to be used from throwNewWithFileAndLine
     private this(Args...)
                 (in Dummy _, in string file, in size_t line, scope auto ref Args args)
-    if(isGlobal!Allocator)
+        if(isGlobal!Allocator)
     {
         import nogc.conv: text, BUFFER_SIZE;
         import std.functional: forward;
@@ -70,9 +71,9 @@ class NoGcExceptionImpl(A): Exception {
     /**
        Throws a new NoGcException allowing to adjust the file name and line number
      */
-    static void throwNewWithFileAndLine(Args...)(in string file, in size_t line, scope auto ref Args args) {
+    static void throw_(Args...)(in File file, in Line line, scope auto ref Args args) {
         import std.functional: forward;
-        throw new NoGcExceptionImpl(Dummy(), file, line, forward!args);
+        throw new NoGcExceptionImpl(Dummy(), file.value, line.value, forward!args);
     }
 
     /// Because DIP1008 doesn't do what it should yet
@@ -80,3 +81,6 @@ class NoGcExceptionImpl(A): Exception {
         _msg.free;
     }
 }
+
+struct File { string value; }
+struct Line { size_t value; }

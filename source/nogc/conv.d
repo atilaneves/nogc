@@ -14,7 +14,7 @@ enum BUFFER_SIZE = 1024;
 @nogc:
 
 auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
-         (auto ref Args args)
+         (scope auto ref Args args)
 {
     import automem.vector: StringA;
     import core.stdc.stdio: snprintf;

@@ -1,9 +1,10 @@
 module ut.exception;
 
+
 import ut;
 import nogc.exception;
 
-///
+
 @("enforce")
 @safe unittest {
     const(char)[] msg, file;
@@ -54,6 +55,7 @@ version(fixme) {
     }
 }
 
+
 @("derived exception")
 @safe @nogc unittest {
 
@@ -88,7 +90,8 @@ version(fixme) {
 @("throwNewWithFileAndLine")
 @safe @nogc unittest {
     try
-        NoGcException.throwNewWithFileAndLine("foo.d", 42, "this is the message ", 33, " or ", 77.7, " hah");
+        NoGcException.throw_(File("foo.d"), Line(42),
+                             "this is the message ", 33, " or ", 77.7, " hah");
     catch(Exception e) {
         assert(e.line == 42);
         debug {
