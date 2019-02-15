@@ -26,7 +26,7 @@ import nogc.exception;
 }
 
 
-version(fixme) {
+version(FIXME) {
     @("TestAllocator")
         @safe @nogc unittest {
 
