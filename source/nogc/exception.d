@@ -27,15 +27,15 @@ class NoGcExceptionImpl(A): Exception {
     alias Allocator = A;
 
     // just to let enforce pass the right arguments to the constructor
-    private static struct Dummy {}
-    private enum isDummy(T) = is(T == Dummy);
+    protected static struct Dummy {}
+    protected enum isDummy(T) = is(T == Dummy);
 
     private StringA!Allocator _msg;
     static if(!isGlobal!Allocator) private Allocator _allocator;
 
     this(Args...)
         (auto ref Args args, string file = __FILE__, size_t line = __LINE__)
-    if(isGlobal!Allocator && !anySatisfy!(isDummy, Args))
+        if(isGlobal!Allocator && !anySatisfy!(isDummy, Args))
     {
         import std.functional: forward;
         this(Dummy(), file, line, forward!args);
@@ -56,9 +56,9 @@ class NoGcExceptionImpl(A): Exception {
         this._allocator = allocator;
     }
 
-    // exists to be used from throwNewWithFileAndLine
-    private this(Args...)
-                (in Dummy _, in string file, in size_t line, scope auto ref Args args)
+    // exists to be used from throw_
+    protected this(Args...)
+                  (in Dummy _, in string file, in size_t line, scope auto ref Args args)
         if(isGlobal!Allocator)
     {
         import nogc.conv: text, BUFFER_SIZE;
@@ -71,9 +71,9 @@ class NoGcExceptionImpl(A): Exception {
     /**
        Throws a new NoGcException allowing to adjust the file name and line number
      */
-    static void throw_(Args...)(in File file, in Line line, scope auto ref Args args) {
+    static void throw_(T = typeof(this), Args...)(in File file, in Line line, scope auto ref Args args) {
         import std.functional: forward;
-        throw new NoGcExceptionImpl(Dummy(), file.value, line.value, forward!args);
+        throw new T(Dummy(), file.value, line.value, forward!args);
     }
 
     /// Because DIP1008 doesn't do what it should yet
@@ -84,3 +84,44 @@ class NoGcExceptionImpl(A): Exception {
 
 struct File { string value; }
 struct Line { size_t value; }
+
+
+mixin template NoGcExceptionCtors() {
+
+    import automem.traits: isGlobal;
+    import std.meta: anySatisfy;
+
+    this(Args...)
+        (auto ref Args args, string file = __FILE__, size_t line = __LINE__)
+        if(isGlobal!Allocator && !anySatisfy!(isDummy, Args))
+    {
+        import std.functional: forward;
+        super(forward!args, file, line);
+    }
+
+    this(Args...)
+        (Allocator allocator, auto ref Args args, string file = __FILE__, size_t line = __LINE__)
+        if(!anySatisfy!(isDummy, Args))
+    {
+        import std.functional: forward;
+        super(allocator, forward!args, file, line);
+    }
+
+
+    // exists to be used from throw_
+    protected this(Args...)
+                  (in Dummy _, in string file, in size_t line, scope auto ref Args args)
+        if(isGlobal!Allocator)
+    {
+        import std.functional: forward;
+        super(_, file, line, forward!args);
+    }
+
+    /**
+       Throws a new NoGcException allowing to adjust the file name and line number
+     */
+     static void throw_(T = typeof(this), Args...)(in File file, in Line line, scope auto ref Args args) {
+        import std.functional: forward;
+        typeof(super).throw_!T(file, line, forward!args);
+    }
+}

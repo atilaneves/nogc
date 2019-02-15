@@ -87,12 +87,36 @@ version(fixme) {
 }
 
 
-@("throwNewWithFileAndLine")
+@("throw.base")
 @safe @nogc unittest {
     try
         NoGcException.throw_(File("foo.d"), Line(42),
                              "this is the message ", 33, " or ", 77.7, " hah");
     catch(Exception e) {
+        assert(e.line == 42);
+        debug {
+            e.file.should == "foo.d";
+            e.line.should == 42;
+            e.msg.should == "this is the message 33 or 77.700000 hah";
+        }
+        return;
+    }
+
+    assert(false, "Didn't catch the exception");
+}
+
+
+@("throw.child")
+@safe @nogc unittest {
+
+    static class MyException: NoGcException {
+        mixin NoGcExceptionCtors;
+    }
+
+    try
+        MyException.throw_(File("foo.d"), Line(42),
+                           "this is the message ", 33, " or ", 77.7, " hah");
+    catch(MyException e) {
         assert(e.line == 42);
         debug {
             e.file.should == "foo.d";
