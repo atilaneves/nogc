@@ -88,6 +88,7 @@ struct Line { size_t value; }
 
 mixin template NoGcExceptionCtors() {
 
+    import nogc.exception: File, Line;
     import automem.traits: isGlobal;
     import std.meta: anySatisfy;
 
