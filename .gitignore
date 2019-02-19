@@ -7,3 +7,4 @@ __test__*__
 bin
 *.a
 *.lib
+reggaefile.d
