@@ -88,3 +88,10 @@ import nogc.conv;
     const wstr = "foobar".toWStringz;
     wstr[].shouldEqual("foobar"w ~ 0);
 }
+
+
+@("text.toWtringz")
+@safe unittest {
+    const wstr = text("foo ", 42, " bar").toWStringz;
+    wstr[].shouldEqual("foo 42 bar"w ~ 0);
+}

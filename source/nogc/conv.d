@@ -5,7 +5,7 @@
 module nogc.conv;
 
 
-import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType, isSomeString;
+import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType;
 import std.range: isInputRange;
 import stdx.allocator.mallocator: Mallocator;
 
@@ -196,18 +196,28 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg)
     return ret;
 }
 
+
 private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == void[])) {
     return &"[void]"[0];
 }
 
-auto toWStringz(Allocator = Mallocator, T)(in T str) if(isSomeString!T) {
+
+auto toWStringz(Allocator = Mallocator, T)(in T str) {
     import automem.vector: Vector;
     import std.utf: byUTF;
+    import std.traits: isSomeString;
 
     Vector!(immutable(wchar), Allocator) ret;
     ret.reserve(str.length * str[0].sizeof + 1);
 
-    foreach(ch; str.byUTF!wchar)
+    static if(isSomeString!T)
+        alias range = str;
+    else static if(__traits(compiles, str[]))
+        auto range = str[];
+    else
+        static assert(false, "Don't know how to iterate by wchar on `" ~ T ~ "`");
+
+    foreach(ch; range.byUTF!wchar)
         ret ~= ch;
 
     ret ~= 0;
