@@ -5,9 +5,9 @@
 module nogc.conv;
 
 
-import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType;
-import std.range: isInputRange;
-import stdx.allocator.mallocator: Mallocator;
+import localimport;
+import std.experimental.allocator.mallocator: Mallocator;
+
 
 enum BUFFER_SIZE = 1024;
 
@@ -73,7 +73,7 @@ private const(char)* format(T)(ref const(T) arg) if(is(T == double)) {
     return &"%lf"[0];
 }
 
-private const(char)* format(T)(ref const(T) arg) if(isPointer!T) {
+private const(char)* format(T)(ref const(T) arg) if(from.std.traits.isPointer!T) {
     return &"%p"[0];
 }
 
@@ -86,15 +86,15 @@ private const(char)* format(T)(ref const(T) arg) if(is(T == void[])) {
 }
 
 private const(char)* format(T)(ref const(T) arg)
-    if(is(T == enum) || is(T == bool) || (isInputRange!T && !is(T == string)) ||
-       isAssociativeArray!T || isAggregateType!T)
+    if(is(T == enum) || is(T == bool) || (from.std.range.primitives.isInputRange!T && !is(T == string)) ||
+       from.std.traits.isAssociativeArray!T || from.std.traits.isAggregateType!T)
 {
     return &"%s"[0];
 }
 
 
 private auto value(Allocator = Mallocator, T)(ref const(T) arg)
-    if((isScalarType!T || isPointer!T) && !is(T == enum) && !is(T == bool))
+    if((from.std.traits.isScalarType!T || from.std.traits.isPointer!T) && !is(T == enum) && !is(T == bool))
 {
     return arg;
 }
@@ -128,7 +128,7 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == strin
     return StringA!Allocator(arg);
 }
 
-private auto value(Allocator = Mallocator, T)(T arg) if(isInputRange!T && !is(T == string)) {
+private auto value(Allocator = Mallocator, T)(T arg) if(from.std.range.primitives.isInputRange!T && !is(T == string)) {
 
     import automem.vector: StringA;
     import std.range: hasLength, isForwardRange, walkLength;
@@ -155,7 +155,7 @@ private auto value(Allocator = Mallocator, T)(T arg) if(isInputRange!T && !is(T 
     return ret;
 }
 
-private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(isAssociativeArray!T) {
+private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(from.std.traits.isAssociativeArray!T) {
 
     import automem.vector: StringA;
 
@@ -177,7 +177,7 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(isAssociative
 }
 
 private auto value(Allocator = Mallocator, T)(ref const(T) arg)
-    if(isAggregateType!T && !isInputRange!T)
+    if(from.std.traits.isAggregateType!T && !from.std.range.primitives.isInputRange!T)
 {
     import automem.vector: StringA;
 
