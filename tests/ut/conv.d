@@ -81,3 +81,10 @@ import nogc.conv;
     catch(UnitTestException _)
         debug actual[].shouldEqual(`[bar: 2, foo: 1]`);
 }
+
+
+@("toWtringz")
+@safe unittest {
+    const wstr = "foobar".toWStringz;
+    wstr[].shouldEqual("foobar"w ~ 0);
+}
