@@ -7,7 +7,7 @@ module nogc.conv;
 
 import std.traits: isScalarType, isPointer, isAssociativeArray, isAggregateType, isSomeString;
 import std.range: isInputRange;
-import stdx.allocator.mallocator: Mallocator;
+import std.experimental.allocator.mallocator: Mallocator;
 
 enum BUFFER_SIZE = 1024;
 
