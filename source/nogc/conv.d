@@ -131,7 +131,7 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == strin
 private auto value(Allocator = Mallocator, T)(T arg) if(from.std.range.primitives.isInputRange!T && !is(T == string)) {
 
     import automem.vector: StringA;
-    import std.range: hasLength, isForwardRange, walkLength;
+    import std.range: hasLength, isForwardRange, walkLength, save;
 
     StringA!Allocator ret;
 
