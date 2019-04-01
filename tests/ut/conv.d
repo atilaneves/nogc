@@ -41,10 +41,13 @@ import nogc.conv;
     actual.range.shouldEqual("fo");
 }
 
-@("text.bool")
-@safe unittest {
-    text(false).range.should == "false";
-    text(true).range.should == "true";
+version(unitThreadedLight) {}
+else {
+    @("text.bool")
+    @safe unittest {
+        text(false).range.should == "false";
+        text(true).range.should == "true";
+    }
 }
 
 @("text.enum")
