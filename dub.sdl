@@ -9,7 +9,7 @@ targetPath "bin"
 
 dflags "-dip1008"
 
-dependency "automem" version="~>0.5.1"
+dependency "automem" version="~>0.6.0"
 dependency "localimport" version="*"
 
 

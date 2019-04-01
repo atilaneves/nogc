@@ -65,7 +65,9 @@ class NoGcExceptionImpl(A): Exception {
         import std.functional: forward;
 
         _msg = text!(BUFFER_SIZE, A)(forward!args);
-        super(_msg[], file, line);
+        // We don't ever append to the vector so it will never invalidate the slice.
+        // Changing _msg to be `const` doesn't compile though.
+        super(() @trusted { return _msg[]; }(), file, line);
     }
 
     /**

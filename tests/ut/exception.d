@@ -9,7 +9,7 @@ import nogc.exception;
 @safe unittest {
     const(char)[] msg, file;
     size_t line, expectedLine;
-    () @nogc {
+    () @safe @nogc {
         try {
             expectedLine = __LINE__ + 1;
             enforce(false, "foo", 5, "bar");

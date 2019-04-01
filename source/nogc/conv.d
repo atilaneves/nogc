@@ -212,10 +212,12 @@ auto toWStringz(Allocator = Mallocator, T)(in T str) {
 
     static if(isSomeString!T)
         alias range = str;
+    else static if(__traits(compiles, str.range))
+        auto range = str.range;
     else static if(__traits(compiles, str[]))
         auto range = str[];
     else
-        static assert(false, "Don't know how to iterate by wchar on `" ~ T ~ "`");
+        static assert(false, "Don't know how to iterate by wchar on `" ~ T.stringof ~ "`");
 
     foreach(ch; range.byUTF!wchar)
         ret ~= ch;
