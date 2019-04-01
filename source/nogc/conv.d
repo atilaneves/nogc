@@ -103,10 +103,6 @@ private auto value(Allocator = Mallocator, T)(ref const(T) arg) if(is(T == enum)
     import std.traits: EnumMembers;
     import std.conv: to;
 
-    string enumToString(in T arg) {
-        return arg.to!string;
-    }
-
     final switch(arg) {
         static foreach(member; EnumMembers!T) {
         case member:
