@@ -15,8 +15,10 @@ enum BUFFER_SIZE = 1024;
 
 auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
          (scope auto ref Args args)
+    @safe
 {
     import automem.vector: StringA;
+    import std.traits: Unqual;
     import core.stdc.stdio: snprintf;
 
     alias String = StringA!Allocator;
@@ -28,10 +30,12 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
         auto ptr = &buffer[0];
         auto len = buffer.length;
         auto fmt = format(arg);
+        // @trusted due to appends in `value`
         auto rawVal = () @trusted { return value!Allocator(arg); }();
 
-        static if(__traits(compiles, rawVal.stringz))
-            auto val = () @trusted { return rawVal.stringz; }();
+        static if(is(Unqual!(typeof(rawVal)): StringA!Allocator))
+            // @trusted because stringz is @system
+            scope val = () @trusted { return rawVal.stringz; }();
         else
             alias val = rawVal;
 

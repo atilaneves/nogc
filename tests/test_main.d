@@ -5,4 +5,5 @@ mixin runTestsMain!(
 
     "ut.conv",
     "ut.exception",
+    "ut.issues",
 );
