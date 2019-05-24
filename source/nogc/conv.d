@@ -31,15 +31,16 @@ auto text(size_t bufferSize = BUFFER_SIZE, Allocator = Mallocator, Args...)
         auto rawVal = () @trusted { return value!Allocator(arg); }();
 
         static if(__traits(compiles, rawVal.stringz))
-            auto val = rawVal.stringz;
+            auto val = () @trusted { return rawVal.stringz; }();
         else
             alias val = rawVal;
 
         const index = () @trusted { return snprintf(ptr, len, fmt, val); }();
-
-        ret ~= index >= buffer.length - 1
+        auto toAppend = index >= buffer.length - 1
             ? buffer[0 .. $ - 1]
             : buffer[0 .. index];
+
+        () @trusted { ret ~= toAppend; }();
     }
 
     return ret;
@@ -204,7 +205,7 @@ auto toWStringz(Allocator = Mallocator, T)(in T str) {
     import std.traits: isSomeString;
 
     Vector!(immutable(wchar), Allocator) ret;
-    ret.reserve(str.length * str[0].sizeof + 1);
+    () @trusted { ret.reserve(str.length * str[0].sizeof + 1); }();
 
     static if(isSomeString!T)
         alias range = str;
@@ -216,9 +217,10 @@ auto toWStringz(Allocator = Mallocator, T)(in T str) {
         static assert(false, "Don't know how to iterate by wchar on `" ~ T.stringof ~ "`");
 
     foreach(ch; range.byUTF!wchar)
-        ret ~= ch;
+        () @trusted { ret ~= ch; }();
 
-    ret ~= 0;
+    // null terminator
+    () @trusted { ret ~= 0; }();
 
     return ret;
 }

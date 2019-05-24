@@ -6,7 +6,7 @@ import nogc.conv;
 
 @("text with multiple arguments")
 @safe unittest {
-    const actual = () @nogc nothrow { return text(1, " ", 2.0, " ", true); }();
+    const actual = () @safe @nogc nothrow { return text(1, " ", 2.0, " ", true); }();
     actual.range.shouldEqual("1 2.000000 true");
 }
 

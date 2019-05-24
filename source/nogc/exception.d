@@ -12,7 +12,7 @@ T enforce(E = NoGcException, T, Args...)
     if (is(typeof({ if (!value) {} })))
 {
     import std.functional: forward;
-    if(!value) throw new NoGcException(NoGcException.Dummy(), file, line, forward!args);
+    if(!value) NoGcException.throw_(File(file), Line(line), forward!args);
     return value;
 }
 
@@ -65,9 +65,10 @@ class NoGcExceptionImpl(A): Exception {
         import std.functional: forward;
 
         _msg = text!(BUFFER_SIZE, A)(forward!args);
-        // We don't ever append to the vector so it will never invalidate the slice.
-        // Changing _msg to be `const` doesn't compile though.
-        super(() @trusted { return _msg[]; }(), file, line);
+        // Setting `Exception.msg` to the allocated memory in this class would
+        // mean it could escape DIP1000 checks. The only sane alternative is
+        // setting it to null
+        super(null, file, line);
     }
 
     /**
@@ -78,9 +79,17 @@ class NoGcExceptionImpl(A): Exception {
         throw new T(Dummy(), file.value, line.value, forward!args);
     }
 
-    /// Because DIP1008 doesn't do what it should yet
+    ///  Manually free the msg
     final void free() @safe @nogc scope {
         _msg.free;
+    }
+
+    /**
+       We can't let client code access `Exception.msg` since it's not scoped
+       with DIP1000.
+     */
+    auto msg() @safe @nogc return scope {
+        return _msg.range;
     }
 }
 

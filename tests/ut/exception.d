@@ -5,24 +5,51 @@ import ut;
 import nogc.exception;
 
 
-@("enforce")
+@("enforce.derived")
 @safe unittest {
-    const(char)[] msg, file;
+    import std.array: array;
+
+    string msg, file;
     size_t line, expectedLine;
-    () @safe @nogc {
+    () @safe {
         try {
             expectedLine = __LINE__ + 1;
-            enforce(false, "foo", 5, "bar");
+            () @nogc { enforce(false, "foo", 5, "bar"); }();
         } catch(NoGcException ex) {
+            msg = ex.msg.array;
+            file = ex.file.idup;
+            line = ex.line;
+        }
+    }();
+
+    msg.should == "foo5bar";
+    file.should == __FILE__;
+    line.should == expectedLine;
+}
+
+
+@("enforce.base")
+@safe unittest {
+    import std.array: array;
+
+    string msg, file;
+    size_t line, expectedLine;
+    () @safe {
+        try {
+            expectedLine = __LINE__ + 1;
+            () @nogc { enforce(false, "foo", 5, "bar"); }();
+        } catch(Exception ex) {
+            // not copying here on purpose - the compiler can't help
             msg = ex.msg;
             file = ex.file;
             line = ex.line;
         }
     }();
 
-    msg.shouldEqual("foo5bar");
-    file.shouldEqual(__FILE__);
-    line.shouldEqual(expectedLine);
+    // no way of getting msg from the base class
+    msg.should == "";
+    file.should == __FILE__;
+    line.should == expectedLine;
 }
 
 
@@ -46,10 +73,12 @@ version(FIXME) {
 @("malloc")
 @safe @nogc unittest {
 
+    import std.algorithm: equal;
+
     try
         throw new NoGcException(42, " foobar ", 33.3);
     catch(NoGcException e) {
-        assert(e.msg == "42 foobar 33.300000", e.msg);
+        assert(equal(e.msg, "42 foobar 33.300000"), "msg not what expected");
         assert(e.file == __FILE__);
         assert(e.line == __LINE__ - 4);
     }
@@ -81,8 +110,7 @@ version(FIXME) {
         assert(MyException.numInstances == 1);
     }
 
-    // FIXME: druntime issue
-    version(fixme)
+    static if(__VERSION__ > 2086)
         assert(MyException.numInstances == 0);
 }
 
@@ -97,7 +125,8 @@ version(FIXME) {
         debug {
             e.file.should == "foo.d";
             e.line.should == 42;
-            e.msg.should == "this is the message 33 or 77.700000 hah";
+            // msg not available via Exception
+            e.msg.should == "";
         }
         return;
     }
@@ -108,6 +137,8 @@ version(FIXME) {
 
 @("throw.child")
 @safe @nogc unittest {
+
+    import std.array: array;
 
     static class MyException: NoGcException {
         mixin NoGcExceptionCtors;
@@ -121,7 +152,7 @@ version(FIXME) {
         debug {
             e.file.should == "foo.d";
             e.line.should == 42;
-            e.msg.should == "this is the message 33 or 77.700000 hah";
+            e.msg.array.should == "this is the message 33 or 77.700000 hah";
         }
         return;
     }
