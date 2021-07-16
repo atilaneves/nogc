@@ -6,7 +6,7 @@ jobs:
     name: Dub Test
     strategy:
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04, windows-latest]
         dc: [dmd-2.097.0, ldc-1.26.0]
 
     runs-on: ${{ matrix.os }}
