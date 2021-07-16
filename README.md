@@ -1,6 +1,6 @@
 # nogc
 
-[![CI](https://github.com/atilaneves/nogc/actions/workflows/d.yml/badge.svg)](https://github.com/atilaneves/nogc/actions/workflows/d.yml)
+[![CI](https://github.com/atilaneves/nogc/actions/workflows/ci.yml/badge.svg)](https://github.com/atilaneves/nogc/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/atilaneves/nogc/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/nogc)
 
 
