@@ -1,6 +1,6 @@
 # nogc
 
-[![Build Status](https://travis-ci.org/atilaneves/nogc.png?branch=master)](https://travis-ci.org/atilaneves/nogc)
+[![CI](https://github.com/atilaneves/nogc/actions/workflows/d.yml/badge.svg)](https://github.com/atilaneves/nogc/actions/workflows/d.yml)
 [![Coverage](https://codecov.io/gh/atilaneves/nogc/branch/master/graph/badge.svg)](https://codecov.io/gh/atilaneves/nogc)
 
 
